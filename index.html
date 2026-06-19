@@ -1,7 +1,93 @@
-<html>
+<!DOCTYPE html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 CS 통합 고객센터</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f4f6f9; padding: 20px; }
+        .container { max-width: 500px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 0 auto; }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 120px; resize: none; }
+        button { width: 100%; padding: 12px; background-color: #4F46E5; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        button:hover { background-color: #4338CA; }
+    </style>
 </head>
 <body>
-Hello!!
+
+<div class="container">
+    <h2>스마트 CS 고객 문의 접수</h2>
+    <form id="csForm">
+        <div class="form-group">
+            <label>성함</label>
+            <input type="text" name="name" required placeholder="홍길동">
+        </div>
+        <div class="form-group">
+            <label>이메일 주소</label>
+            <input type="email" name="email" required placeholder="example@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>문의 유형</label>
+            <select name="type" required>
+                <option value="">-- 선택해 주세요 --</option>
+                <option value="배송/출고 문의">배송/출고 문의</option>
+                <option value="교환/반품/환불">교환/반품/환불</option>
+                <option value="제품/서비스 상담">제품/서비스 상담</option>
+                <option value="회원정보/오류 제보">회원정보/오류 제보</option>
+                <option value="대량 구매/제휴">대량 구매/제휴</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>문의 내용</label>
+            <textarea name="content" required placeholder="문의 사항을 상세히 적어주세요."></textarea>
+        </div>
+        <button type="submit">문의 등록하기</button>
+    </form>
+</div>
+
+<script>
+    // ★ [중요] 이전 단계에서 구글 Apps Script 배포 후 복사해둔 '웹 앱 URL'을 아래 큰따옴표 안에 붙여넣으세요!
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzAVQ1Mq-8IMJfT9ixCXUOnB2eSCL8TasiN6EQ5XkspPBz8NyiulUhrKl89MXn4vCYn3Q/exec";
+
+    document.getElementById('csForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitButton = e.target.querySelector('button');
+        submitButton.disabled = true;
+        submitButton.innerText = "전송 중...";
+
+        const formData = new FormData(this);
+        
+        // 구글 시트에서 행을 추가할 때 고유한 문의 번호를 만들기 위해 임시 번호 생성 (예: CS + 타임스탬프 뒤 4자리)
+        const inquiryNum = "CS" + String(Date.now()).slice(-4);
+        formData.append("inquiryNum", inquiryNum);
+
+        // URL 인코딩 변환
+        const searchParams = new URLSearchParams(formData);
+
+        // 구글 웹 앱으로 데이터 전송 (CORS 우회 전송 방식)
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: searchParams,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(() => {
+            alert('문의가 정상적으로 접수되었습니다!');
+            this.reset();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            submitButton.innerText = "문의 등록하기";
+        });
+    });
+</script>
+
 </body>
-<html>
+</html>
